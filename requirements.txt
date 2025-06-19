@@ -3,4 +3,3 @@ pandas==2.1.4
 numpy==1.26.3
 scikit-learn==1.3.2
 plotly==5.18.0
-sqlite3== # (Built-in Python module, no need to include)
