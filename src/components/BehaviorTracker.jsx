@@ -88,7 +88,7 @@ const BehaviorTracker = () => {
     try {
       // We'll implement the actual API call once Faham sets up the backend
       console.log('Behavior data:', behaviorData.current);
-      // await axios.post('/api/behavior', behaviorData.current);
+      await axios.post('/api/behavior', behaviorData.current); // Don't forget to use npm install axios purr-a-xanos
     } catch (error) {
       console.error('Error sending behavior data:', error);
     }
