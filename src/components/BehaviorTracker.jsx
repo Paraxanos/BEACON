@@ -83,6 +83,7 @@ const BehaviorTracker = () => {
         !behaviorData.current.mouseMovements.length) return;
 
     try {
+<<<<<<< HEAD
       await axios.post(
         import.meta.env.VITE_API_URL ? 
           `${import.meta.env.VITE_API_URL}/api/behavior` : 
@@ -94,6 +95,11 @@ const BehaviorTracker = () => {
       );
       behaviorData.current.typingPatterns = [];
       behaviorData.current.mouseMovements = [];
+=======
+      // We'll implement the actual API call once Faham sets up the backend
+      console.log('Behavior data:', behaviorData.current);
+      await axios.post('/api/behavior', behaviorData.current); // Don't forget to use npm install axios purr-a-xanos
+>>>>>>> 2578055a518a045c5b89e7d593e131543ea85f4c
     } catch (error) {
       console.error('Error sending behavior data:', error);
     }
