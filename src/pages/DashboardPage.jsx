@@ -1,84 +1,39 @@
-import { useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import './Dashboard.css'; // Create this file for styles
+import BehaviorTracker from '../components/BehaviorTracker';
+import '../styles/Dashboard.css';
 
 export default function DashboardPage() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if not logged in (redundant safety check)
-  useEffect(() => {
-    if (!currentUser) {
-      navigate('/');
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
     }
-  }, [currentUser, navigate]);
+  };
 
   return (
-    <div className="dashboard-container">
-      {/* Security Status Header */}
-      <header className="security-header">
+    <div className="dashboard">
+      <header className="dashboard-header">
         <div className="user-info">
-          <span className="user-email">{currentUser?.email}</span>
-          <span className="trust-badge">Verified User</span>
+          <h2>Welcome, {currentUser?.email}</h2>
+          {currentUser && !currentUser.emailVerified && (
+            <div className="verification-warning">
+              Email not verified. Please check your inbox.
+            </div>
+          )}
         </div>
-        <button 
-          onClick={logout}
-          className="logout-button"
-          aria-label="Logout"
-        >
-          🔒 Logout
+        <button onClick={handleLogout} className="logout-button">
+          Logout
         </button>
       </header>
-
-      {/* Behavioral Security Dashboard */}
-      <section className="security-overview">
-        <h2>Security Overview</h2>
-        <div className="metrics-grid">
-          <div className="metric-card">
-            <h3>Session Trust Score</h3>
-            <div className="score-display">87%</div>
-            <p>Based on your current behavior patterns</p>
-          </div>
-          
-          <div className="metric-card">
-            <h3>Typing Profile</h3>
-            <div className="confidence-level">High Confidence</div>
-            <progress value="85" max="100"></progress>
-          </div>
-        </div>
-      </section>
-
-      {/* Quick Actions */}
-      <section className="quick-actions">
-        <h2>Security Controls</h2>
-        <div className="action-buttons">
-          <button className="action-button">
-            🛡️ Lock Session
-          </button>
-          <button className="action-button">
-            🔄 Refresh Behavior Profile
-          </button>
-          <button className="action-button">
-            📊 View Security History
-          </button>
-        </div>
-      </section>
-
-      {/* Recent Activity */}
-      <section className="recent-activity">
-        <h2>Authentication Events</h2>
-        <ul className="activity-list">
-          <li>
-            <span className="activity-time">Today, 10:30 AM</span>
-            <span className="activity-detail">Behavior anomaly detected (mouse movement)</span>
-          </li>
-          <li>
-            <span className="activity-time">Today, 9:15 AM</span>
-            <span className="activity-detail">Successful login from Chrome on Windows</span>
-          </li>
-        </ul>
-      </section>
+      <BehaviorTracker />
     </div>
   );
 }

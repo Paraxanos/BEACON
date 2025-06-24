@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import axios from 'axios';
+import { useAuth } from '../auth/AuthContext';
 
 const BehaviorTracker = () => {
+  const { currentUser } = useAuth();
   const behaviorData = useRef({
     typingPatterns: [],
     mouseMovements: [],
@@ -10,16 +12,8 @@ const BehaviorTracker = () => {
     fingerprint: null
   });
 
+  // Collect device info on mount (unchanged)
   useEffect(() => {
-    // Initialize fingerprinting
-    const getFingerprint = async () => {
-      const fp = await FingerprintJS.load();
-      const result = await fp.get();
-      behaviorData.current.fingerprint = result.visitorId;
-    };
-    getFingerprint();
-
-    // Collect device info
     behaviorData.current.deviceInfo = {
       browser: navigator.userAgent,
       screenResolution: `${window.screen.width}x${window.screen.height}`,
@@ -28,28 +22,31 @@ const BehaviorTracker = () => {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     };
 
-    // Typing pattern tracking
+    (async () => {
+      const fp = await import('@fingerprintjs/fingerprintjs');
+      const result = await (await fp.load()).get();
+      behaviorData.current.fingerprint = result.visitorId;
+    })();
+  }, []);
+
+  // Tracking handlers (unchanged)
+  useEffect(() => {
     const handleKeyDown = (e) => {
-      const timestamp = Date.now();
       behaviorData.current.typingPatterns.push({
         key: e.key,
         code: e.code,
-        timestamp,
-        dwellTime: null // will be updated on keyup
+        timestamp: Date.now(),
+        dwellTime: null
       });
     };
 
     const handleKeyUp = (e) => {
-      const timestamp = Date.now();
-      const lastKeyDown = behaviorData.current.typingPatterns.findLast(
-        entry => entry.key === e.key && entry.dwellTime === null
+      const lastKey = behaviorData.current.typingPatterns.findLast(
+        k => k.key === e.key && !k.dwellTime
       );
-      if (lastKeyDown) {
-        lastKeyDown.dwellTime = timestamp - lastKeyDown.timestamp;
-      }
+      if (lastKey) lastKey.dwellTime = Date.now() - lastKey.timestamp;
     };
 
-    // Mouse movement tracking
     const handleMouseMove = (e) => {
       behaviorData.current.mouseMovements.push({
         x: e.clientX,
@@ -58,18 +55,15 @@ const BehaviorTracker = () => {
       });
     };
 
-    // Click tracking
     const handleClick = (e) => {
       behaviorData.current.clickEvents.push({
         x: e.clientX,
         y: e.clientY,
         target: e.target.tagName,
-        timestamp: Date.now(),
-        hoverTime: null // will be calculated based on mouseenter/leave
+        timestamp: Date.now()
       });
     };
 
-    // Add event listeners
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('mousemove', handleMouseMove);
@@ -83,24 +77,35 @@ const BehaviorTracker = () => {
     };
   }, []);
 
-  // Function to send data to backend
+  // Fixed: Explicitly set API URL if .env fails
   const sendBehaviorData = async () => {
+    if (!behaviorData.current.typingPatterns.length && 
+        !behaviorData.current.mouseMovements.length) return;
+
     try {
-      // We'll implement the actual API call once Faham sets up the backend
-      console.log('Behavior data:', behaviorData.current);
-      // await axios.post('/api/behavior', behaviorData.current);
+      await axios.post(
+        import.meta.env.VITE_API_URL ? 
+          `${import.meta.env.VITE_API_URL}/api/behavior` : 
+          'http://localhost:8000/api/behavior',
+        {
+          ...behaviorData.current,
+          currentUser: currentUser ? { email: currentUser.email } : null
+        }
+      );
+      behaviorData.current.typingPatterns = [];
+      behaviorData.current.mouseMovements = [];
     } catch (error) {
       console.error('Error sending behavior data:', error);
     }
   };
 
-  // Send data periodically (every 30 seconds)
+  // Send data every 30 seconds (unchanged)
   useEffect(() => {
     const interval = setInterval(sendBehaviorData, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [currentUser]);
 
-  return null; // This is a non-visual component
+  return null;
 };
 
 export default BehaviorTracker;

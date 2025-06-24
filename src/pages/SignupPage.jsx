@@ -1,27 +1,29 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, googleProvider } from '../firebase';
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithPopup, sendEmailVerification } from 'firebase/auth';
 import GoogleButton from 'react-google-button';
 import '../styles/AuthPage.css';
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(userCredential.user);
+      alert('Verification email sent! Please check your inbox.');
       navigate('/dashboard');
     } catch (err) {
       setError(err.message.replace('Firebase: ', ''));
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignup = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
       navigate('/dashboard');
@@ -32,9 +34,9 @@ export default function LoginPage() {
 
   return (
     <div className="auth-container">
-      <h2>Login</h2>
+      <h2>Create Account</h2>
       {error && <div className="error-message">{error}</div>}
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleSignup}>
         <input
           type="email"
           placeholder="Email"
@@ -44,25 +46,26 @@ export default function LoginPage() {
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Password (min 6 characters)"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          minLength={6}
         />
         <button type="submit" className="auth-button">
-          Login
+          Sign Up
         </button>
       </form>
       <div className="divider">
         <span>OR</span>
       </div>
       <GoogleButton
-        onClick={handleGoogleLogin}
+        onClick={handleGoogleSignup}
         className="google-button"
-        label="Sign in with Google"
+        label="Sign up with Google"
       />
       <div className="auth-footer">
-        Don't have an account? <Link to="/signup">Sign up</Link>
+        Already have an account? <Link to="/login">Login</Link>
       </div>
     </div>
   );
