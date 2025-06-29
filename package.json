@@ -12,8 +12,10 @@
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^3.4.2",
     "@react-oauth/google": "^0.12.2",
+    "@types/file-saver": "^2.0.7",
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
+    "file-saver": "^2.0.5",
     "firebase": "^11.9.1",
     "jwt-decode": "^4.0.0",
     "react": "^19.1.0",

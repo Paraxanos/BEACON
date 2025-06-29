@@ -3,6 +3,7 @@ import { AuthProvider } from './auth/AuthContext';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
+import SimulatorPage from './pages/SimulatorPage';
 import PrivateRoute from './components/PrivateRoute';
 
 export default function App() {
@@ -12,14 +13,16 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <DashboardPage />
-              </PrivateRoute>
-            }
-          />
+          <Route path="/dashboard" element={
+            <PrivateRoute>
+              <DashboardPage />
+            </PrivateRoute>
+          } />
+          <Route path="/simulator" element={
+            <PrivateRoute>
+              <SimulatorPage />
+            </PrivateRoute>
+          } />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
