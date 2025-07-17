@@ -293,7 +293,7 @@ export default function DashboardPage() {
     };
 
     try {
-      const response = await fetch('http://localhost:8000/api/behavior', {
+      const response = await fetch('https://beacon-d3nc.onrender.com/api/behavior', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
